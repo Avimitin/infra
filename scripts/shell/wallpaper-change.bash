@@ -1,1 +1,0 @@
-/home/sh1marin/.local/bin/chbg
