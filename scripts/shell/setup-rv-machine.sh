@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if ! grep "Arch Linux" /etc/os-release &> /dev/null; then
+  echo "This script should run under Arch Linux"
+  exit 1
+fi
+
+. /usr/share/makepkg/util.sh
+colorize
+
 prefix="https://raw.githubusercontent.com"
 
 declare -A resources
@@ -18,12 +26,21 @@ sha256sums=(
 
 for output in ${!resources[@]}; do
   remote="${prefix}/${resources[$output]}"
-  echo "Downloaing $remote to $output"
+  msg "Downloaing $output..."
 
   curl -sSfLo "$output" "$remote"
 
-  printf "Checking file integrity: "
+  msg2 "Checking file integrity..."
   sum="${sha256sums[$output]}"
-  echo "$sum  $output" | sha256sum --check
-  echo
+  echo "$sum  $output" | sha256sum --check --status
+  if (( $? != 0 )); then
+    error "$output sha256sums mismatch, file might broken"
+    exit 1
+  fi
 done
+
+msg "Creating cache directory"
+mkdir -p $HOME/.cache/rvpkg
+
+msg "Creating workspace"
+mkdir -p $HOME/rvpkg
