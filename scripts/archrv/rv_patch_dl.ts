@@ -17,8 +17,6 @@ const api_base = new URL(
 
 interface GitHubContentResponse {
   name: string;
-  path: string;
-  sha: string;
   url: string;
   download_url: string;
   type: "dir" | "file";
