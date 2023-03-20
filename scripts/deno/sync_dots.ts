@@ -51,6 +51,7 @@ const rsync = async (remote: string, ...path: string[]) => {
   }
 }
 
-for (const src of servers) {
-  rsync(src, ...pending_files)
+for (const srv of servers) {
+  console.log(`==> Sending file to ${srv}`)
+  rsync(srv, ...pending_files)
 }
