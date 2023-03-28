@@ -1,7 +1,7 @@
 let home = Sys.getenv "HOME"
-let is_symlink (stat : Unix.stats) = stat.Unix.st_kind = Unix.S_LNK
 
 let resolve_dots (dot : string) =
+  let is_symlink (stat : Unix.stats) = stat.Unix.st_kind = Unix.S_LNK in
   let fullpath = Filename.concat home dot in
   let stat = Unix.lstat fullpath in
   if is_symlink stat then Unix.readlink fullpath else fullpath
