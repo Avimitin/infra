@@ -29,7 +29,32 @@ let dotfiles =
   [ ".vimrc"; ".bashrc"; ".tmux.conf" ]
   |> List.map (fun dot -> resolve_dots dot)
 
+let wait_process proc =
+  let _, status = Unix.process_full_pid proc |> Unix.waitpid [] in
+  match status with
+  | Unix.WEXITED 0 -> Ok ()
+  | _ ->
+      let _, _, stderr = proc in
+      Error (In_channel.input_all stderr)
+
+(* Perform a `rsync -azvhP $files $remote:~/` command execution *)
 let rsync ~(remote : string) ~(files : string list) =
-  Format.printf "$ rsync -azvhP %s %s\n" (String.concat " " files) remote
+  let remote_target = Printf.sprintf "%s:~/" remote in
+  let rsync_arg =
+    ("rsync" :: "-azvhP" :: files) @ [ remote_target ] |> Array.of_list
+  in
+  let handle_rsync proc =
+    match wait_process proc with
+    | Ok () -> Format.printf "==> %s DONE\n" remote
+    | Error err ->
+        Format.printf "Fail to sync file to %s\n" remote;
+        Format.printf "--------------- stderr --------------\n";
+        Format.printf "%s\n\n" err
+  in
+  let proc =
+    Unix.open_process_args_full "rsync" rsync_arg (Unix.environment ())
+  in
+  flush_all ();
+  handle_rsync proc
 
 let () = servers |> Array.iter (fun srv -> rsync ~remote:srv ~files:dotfiles)
