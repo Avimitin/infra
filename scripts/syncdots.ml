@@ -54,7 +54,7 @@ let rsync ~(remote : string) ~(files : string list) =
   let proc =
     Unix.open_process_args_full "rsync" rsync_arg (Unix.environment ())
   in
-  flush_all ();
+  Out_channel.flush_all ();
   handle_rsync proc
 
 let () = servers |> Array.iter (fun srv -> rsync ~remote:srv ~files:dotfiles)
